@@ -90,25 +90,3 @@ def create_video2gloss_model(input_shape, ):
 
 def save_video2gloss_model():
     pass
-
-
-if __name__ == '__main__':
-    (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
-    x_train = tf.image.per_image_standardization(
-        x_train
-    )
-    print(x_train[0])
-    x_train = tf.reshape(x_train, shape=(10000, 6, 4, 7, 28, 1))
-
-    y_train = to_categorical(y_train, num_classes=10)
-    y_train = tf.reshape(y_train, shape=(10000, 6, 10))
-    blank = tf.zeros(shape=(10000, 6, 512))
-
-    adam = optimizers.Adam(learning_rate=10e-4)
-    model = create_video2gloss_model(input_shape=(6, 4, 7, 28, 1))
-    model.summary()
-    model.compile(optimizer=adam, loss=[self_defined_losses.cross_entrophy,
-                                          self_defined_losses.cross_entrophy],
-                                    loss_weights=[1, 0])
-
-    model.fit(x_train, [y_train, blank], batch_size=10, epochs=3, verbose=True)

@@ -87,10 +87,3 @@ class ResBlock3D(layers.Layer):
             assert identity.shape[-1] == self.output_filter
             return layers.add([identity, res_x])
 
-
-# test the module
-if __name__ == '__main__':
-    x = tf.ones(shape=(2, 5, 5, 100, 100, 3))
-    model = ReNet3D18L(400)
-    y = model(x)
-    print(y.shape)

@@ -26,9 +26,9 @@ if __name__ == '__main__':
     # blank = tf.zeros(shape=(10000, 6, 512))
 
     
-    x = tf.random.uniform(shape=(32, 6, 4, 7, 28, 1))
-    y = tf.random.uniform(shape=(32, 6, 10))
-    blank = tf.zeros(shape=(32, 6, 512))
+    x = tf.random.uniform(shape=(8, 6, 4, 7, 28, 1))
+    y = tf.random.uniform(shape=(8, 6, 10))
+    blank = tf.zeros(shape=(8, 6, 512))
     model = create_video2gloss_model(input_shape=(6, 4, 7, 28, 1))
     adam = optimizers.Adam(learning_rate=10e-4)
     
