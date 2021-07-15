@@ -1,9 +1,6 @@
-from tensorflow.keras import layers
-from tensorflow.keras import models
-from tensorflow import keras
-import tensorflow as tf
-
-input = layers.Input()
+import os
+print(os.getcwd())
+#os.system("python3 ./models/video2gloss.py")
 
 
 

@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-from models.transformer import utils
+from . import utils
 
 class EncodeBlock(layers.Layer):
 

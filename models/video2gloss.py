@@ -1,15 +1,18 @@
+import sys
+sys.path.append("..")
+
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras import layers
 from tensorflow.keras import optimizers
 from tensorflow.keras.layers import Layer, Dense, Dropout
 
-from cnn.resnet3D import ReNet3D18L
-from transformer.encoder import Encoder, PositionEmbedding
+from .cnn.resnet3D import ReNet3D18L
+from .transformer.encoder import Encoder, PositionEmbedding
 
 from tensorflow.keras.utils import to_categorical
 
-import models.losses as self_defined_losses
+from . import losses as self_defined_losses
 
 class Video2Gloss(layers.Layer):
 
