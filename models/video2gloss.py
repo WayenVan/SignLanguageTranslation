@@ -73,17 +73,28 @@ class Video2Gloss(layers.Layer):
         return gloss_category, video_feature
 
 
-def create_video2gloss_model(input_shape, ):
-    video2gloss = Video2Gloss(video_embed_dim=512,
-                              block_number=6,
-                              encoder_head_number=6,
-                              ff_dim=256,
-                              linear_hidden_dim=256,
-                              linear_output_dim=10,
-                              drop_out=0.1)
+def create_video2gloss_model(input_shape,
+                             video_embed_dim,
+                             block_number,
+                             encoder_head_number,
+                             ff_dim,
+                             linear_hidden_dim,
+                             linear_output_dim,
+                             drop_out=0.1
+                             ):
+    #create layer
+    video2gloss = Video2Gloss(video_embed_dim=video_embed_dim,
+                              block_number=block_number,
+                              encoder_head_number=encoder_head_number,
+                              ff_dim=ff_dim,
+                              linear_hidden_dim=linear_hidden_dim,
+                              linear_output_dim=linear_output_dim,
+                              drop_out=drop_out)
 
     inputs = keras.Input(shape=input_shape) #feed fake batch_size for timedistributed computine
     gloss_output, video_feature_output = video2gloss(inputs)
+
+    #create model
     model = keras.Model(inputs=inputs, outputs=[gloss_output, video_feature_output])
 
     return model
