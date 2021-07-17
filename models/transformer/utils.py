@@ -19,8 +19,10 @@ def create_att_mask(input_mask, future_mask=False):
         assert att_mask.shape[0] == 1
     else:
         att_mask = tf.ones(shape=(1, input_mask.shape[-1], input_mask.shape[-1]), dtype=tf.int8)
-    # align the input mask with attention mask
-    att_mask = tf.where(tf.expand_dims(input_mask, -2), att_mask, 0)  # mask become: [batch_size, 1, time_step]
+
+    if input_mask is not None:
+        # align the input mask with attention mask
+        att_mask = tf.where(tf.expand_dims(input_mask, -2), att_mask, 0)  # mask become: [batch_size, 1, time_step]
     return att_mask
 
 

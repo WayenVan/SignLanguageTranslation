@@ -3,11 +3,12 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from . import utils
 
+
 class EncodeBlock(layers.Layer):
 
-    def __init__(self, embed_dim, num_heads, ff_dim, rate=0.0):
+    def __init__(self, embed_dim, k_dim, v_dim, num_heads, ff_dim, rate=0.0):
         super(EncodeBlock, self).__init__()
-        self.att = layers.MultiHeadAttention(num_heads=num_heads, key_dim=embed_dim)
+        self.att = layers.MultiHeadAttention(num_heads=num_heads, key_dim=k_dim, value_dim=v_dim)
         self.ffn = keras.Sequential(
             [layers.Dense(ff_dim, activation="relu"), layers.Dense(embed_dim), ]
         )
@@ -43,10 +44,10 @@ class Encoder(layers.Layer):
     transformer encoder, it include N endoerBlock.
     """
 
-    def __init__(self, block_number, embed_dim, num_heads, ff_dim, rate=0.0):
+    def __init__(self, block_number, embed_dim, k_dim, v_dim,num_heads, ff_dim, rate=0.0):
         super(Encoder, self).__init__()
         self.encode_blocks = [
-            EncodeBlock(embed_dim, num_heads, ff_dim, rate=rate) for i in range(block_number)
+            EncodeBlock(embed_dim, k_dim, v_dim, num_heads, ff_dim, rate=rate) for i in range(block_number)
         ]
 
     def call(self, inputs, intput_mask=None, training=None, *args, **kwargs):
@@ -70,8 +71,4 @@ class PositionEmbedding(layers.Layer):
         """
         position_code = utils.positional_encoding(inputs.shape[1], inputs.shape[-1])
 
-        return inputs+position_code
-
-
-
-
+        return inputs + position_code

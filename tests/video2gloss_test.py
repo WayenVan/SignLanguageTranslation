@@ -69,8 +69,10 @@ if __name__ == '__main__':
     model = create_video2gloss_model(input_shape=(6, 4, 7, 28, 1),
                                      video_embed_dim=128,
                                      block_number=6,
-                                     encoder_head_number=6,
-                                     ff_dim=64,
+                                     k_dim=64,
+                                     v_dim=64,
+                                     encoder_head_number=8,
+                                     ff_dim=256,
                                      linear_hidden_dim=256,
                                      linear_output_dim=10,
                                      drop_out=0.1)
@@ -86,3 +88,4 @@ if __name__ == '__main__':
     #if load weight
     model.load_weights(os.getcwd() + "/data/checkpoint")
     model.evaluate(x_test[:100], [y_test[:100], blank[:100]])
+
