@@ -34,8 +34,8 @@ if __name__ == '__main__':
                                      linear_output_dim=10,
                                      drop_out=0.1)
 
-    opt = optimizers.SGD()
-
+    opt = optimizers.SGD(learning_rate=0.9)
+    
     model.summary()
     model.compile(optimizer=opt, loss=[self_defined_losses.cross_entrophy,
                                         self_defined_losses.cross_entrophy],
@@ -44,7 +44,7 @@ if __name__ == '__main__':
         filepath=os.getcwd()+"/data/checkpoint",
         save_weights_only=True,
     )
-    model.load_weights(os.getcwd()+"/data/checkpoint")
+    #model.load_weights(os.getcwd()+"/data/checkpoint")
 
     history = model.fit(x=x_train[:500], y=[y_train[:500], blank[:500]],
                         batch_size=4,
