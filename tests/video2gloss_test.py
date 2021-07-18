@@ -11,6 +11,7 @@ from tensorflow.keras.utils import to_categorical
 from models import losses
 from models import metrics
 import models
+import pandas as pd
 
 from models.video2gloss import create_video2gloss_model
 
@@ -41,21 +42,23 @@ def prepare_data():
     return (x_train, y_train), (x_test, y_test)
 
 
-def train(model, x_train, y1_train, y2_train):
+def train(model, x_train, y1_train, y2_train, epochs, batch_size):
     # prepare checkpoint
     checkpoint_callback = keras.callbacks.ModelCheckpoint(
         filepath=os.getcwd() + "/data/checkpoint",
-        save_weights_only=True,
+        save_best_only=False,
+        save_weights_only=True
     )
 
-    history = model.fit(x=x_train[:500], y=[y1_train[:500], y2_train[:500]],
-                        batch_size=4,
-                        epochs=50,
+    history = model.fit(x=x_train, y=[y1_train, y2_train],
+                        batch_size=batch_size,
+                        epochs=epochs,
                         verbose=1,
                         callbacks=[checkpoint_callback,])
     #save history
-    with open(os.getcwd() + "/data/history", "wb+") as file:
-        pickle.dump(history, file)
+    with open(os.getcwd() + "/data/history", "w+") as file:
+        hist = pd.DataFrame(history.history)
+        hist.to_json(file)
 
 def evaluation(model, x_test, y_test):
     pass
@@ -71,13 +74,13 @@ if __name__ == '__main__':
                                      block_number=6,
                                      k_dim=64,
                                      v_dim=64,
-                                     encoder_head_number=8,
-                                     ff_dim=256,
+                                     encoder_head_number=12,
+                                     ff_dim=2048,
                                      linear_hidden_dim=256,
                                      linear_output_dim=10,
                                      drop_out=0.1)
 
-    opt = optimizers.SGD()
+    opt = optimizers.SGD(learning_rate=1e-5)
     model.summary()
     model.compile(optimizer=opt,
                   loss=[losses.my_kl_divergence,
@@ -86,6 +89,8 @@ if __name__ == '__main__':
                   metrics=[metrics.my_categorical_accuracy])
 
     #if load weight
-    model.load_weights(os.getcwd() + "/data/checkpoint")
-    model.evaluate(x_test[:100], [y_test[:100], blank[:100]])
+    # model.load_weights(os.getcwd() + "/data/checkpoint")
+    train(model, x_train[:500], y_train[:500], blank[:500], 50, 4)
+   
+    #model.evaluate(x_test[:100], [y_test[:100], blank[:100]])
 
