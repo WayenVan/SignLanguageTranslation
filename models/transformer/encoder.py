@@ -27,7 +27,7 @@ class EncodeBlock(layers.Layer):
 
         # create mask and put it into attention
         if input_mask is not None:
-            attn_mask = utils.create_att_mask(input_mask)
+            attn_mask = utils.create_att_mask(input_mask, inputs.shape[-2])
             attn_output = self.att(inputs, inputs, attention_mask=attn_mask, training=training)
         else:
             attn_output = self.att(inputs, inputs, training=training)

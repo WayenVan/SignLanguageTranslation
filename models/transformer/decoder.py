@@ -23,9 +23,9 @@ class DecoderBlock(layers.Layer):
         self.masked_attn = MultiHeadAttention(num_heads=num_heads, key_dim=k_dim, value_dim=v_dim)
         self.cross_attn = MultiHeadAttention(num_heads=num_heads, key_dim=k_dim, value_dim=v_dim)
 
-        self.LN1 = LayerNormalization()
-        self.LN2 = LayerNormalization()
-        self.LN3 = LayerNormalization()
+        self.LN1 = LayerNormalization(epsilon=1e-6)
+        self.LN2 = LayerNormalization(epsilon=1e-6)
+        self.LN3 = LayerNormalization(epsilon=1e-6)
 
     def call(self, inputs,
              inputs_mask=None,
@@ -40,15 +40,15 @@ class DecoderBlock(layers.Layer):
         if not isinstance(inputs, list):
             raise ValueError('This layer should be called on a list of inputs.')
 
-        attn_mask = utils.create_att_mask(inputs_mask, future_mask=True)
-        ret1 = self.masked_attn(inputs[0], attention_mask=attn_mask)
+        attn_mask = utils.create_att_mask(inputs_mask, inputs[0].shape[-2], future_mask=True)
+        ret1 = self.masked_attn(inputs[0], inputs[0], attention_mask=attn_mask)
         ret1 = self.dropout1(ret1, training=training)
         ret1 = self.LN1(ret1 + inputs[0])
 
         if inputs_mask is None:
             ret2 = self.cross_attn(ret1, inputs[1])
         else:
-            cross_attn_mask = utils.create_att_mask(encoder_mask)
+            cross_attn_mask = utils.create_att_mask(encoder_mask, inputs[0].shape[-2])
             ret2 = self.cross_attn(ret1, inputs[1], attention_mask=cross_attn_mask)
 
         ret2 = self.dropout2(ret2, training=training)

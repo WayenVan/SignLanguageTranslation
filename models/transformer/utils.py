@@ -4,26 +4,29 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 
-def create_att_mask(input_mask, future_mask=False):
+def create_att_mask(input_mask, q_dim, future_mask=False):
     """
-    :param mask: boolean tensor [batch_size, time_step_mask]
+    :param mask: boolean or int tensor [batch_size, time_step_mask]
+    :param q_dim: query dimension
     :param future_mask: if mask future when do self attention vectors
     :return: [batch_size, time_step_mask, time_step_mask]
     """
+    input_mask = tf.cast(input_mask, dtype=tf.bool)
+
     if future_mask:
         # create triangle matrix by numpy
-        tri = np.ones(shape=(1, input_mask.shape[-1], input_mask.shape[-1]))
+        tri = np.ones(shape=(1, q_dim, input_mask.shape[-1]))  # [batch_size, q_dim, k_dim]
         tri = np.tril(tri, 0)
         att_mask = tf.constant(tri, dtype=tf.int8)
         assert len(att_mask.shape) == 3
         assert att_mask.shape[0] == 1
     else:
-        att_mask = tf.ones(shape=(1, input_mask.shape[-1], input_mask.shape[-1]), dtype=tf.int8)
+        att_mask = tf.ones(shape=(1, q_dim, input_mask.shape[-1]), dtype=tf.int8)
 
     if input_mask is not None:
         # align the input mask with attention mask
         att_mask = tf.where(tf.expand_dims(input_mask, -2), att_mask, 0)  # mask become: [batch_size, 1, time_step]
-    return att_mask
+    return tf.cast(att_mask, dtype=tf.int8)
 
 
 def positional_encoding(position, d_model):
@@ -33,7 +36,8 @@ def positional_encoding(position, d_model):
     :param d_model: demention of embedding
     :return: position encode
     """
-    #define get angles
+
+    # define get angles
     def get_angles(pos, i, d_model):
         angle_rates = 1 / np.power(10000, (2 * (i // 2)) / np.float32(d_model))
         return pos * angle_rates
@@ -52,6 +56,7 @@ def positional_encoding(position, d_model):
 
     return tf.cast(pos_encoding, dtype=tf.float32)
 
+
 if __name__ == '__main__':
     a = tf.zeros(shape=(2, 3))
     print(tf.expand_dims(a, -2).shape.as_list())
@@ -60,4 +65,3 @@ if __name__ == '__main__':
 
     print(mask)
     print(create_att_mask(mask))
-
