@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append("..")
 
 import tensorflow as tf
@@ -13,6 +14,7 @@ from .transformer.encoder import Encoder, PositionEmbedding
 from tensorflow.keras.utils import to_categorical
 
 from . import losses as self_defined_losses
+
 
 class Video2Gloss(layers.Layer):
 
@@ -88,7 +90,7 @@ def create_video2gloss_model(input_shape,
                              linear_output_dim,
                              drop_out=0.1
                              ):
-    #create layer
+    # create layer
     video2gloss = Video2Gloss(video_embed_dim=video_embed_dim,
                               block_number=block_number,
                               k_dim=k_dim,
@@ -99,13 +101,14 @@ def create_video2gloss_model(input_shape,
                               linear_output_dim=linear_output_dim,
                               drop_out=drop_out)
 
-    inputs = keras.Input(shape=input_shape) #feed fake batch_size for timedistributed computine
-    gloss_output, video_feature_output = video2gloss(inputs)
+    inputs_mask = keras.Input(shape=input_shape[1])
+    inputs = keras.Input(shape=input_shape)  # feed fake batch_size for Redistributed computing
+    gloss_output, video_feature_output = video2gloss(inputs, inputs_mask=inputs_mask)
 
-    #create model
-    model = keras.Model(inputs=inputs, outputs=[gloss_output, video_feature_output])
-
+    # create model
+    model = keras.Model(inputs=[inputs, inputs_mask], outputs=[gloss_output, video_feature_output])
     return model
+
 
 def save_video2gloss_model():
     pass

@@ -42,7 +42,7 @@ def prepare_data():
     return (x_train, y_train), (x_test, y_test)
 
 
-def train(model, x_train, y1_train, y2_train, epochs, batch_size):
+def train(model, x_train, x_mask_train, y1_train, y2_train, epochs, batch_size):
     # prepare checkpoint
     checkpoint_callback = keras.callbacks.ModelCheckpoint(
         filepath=os.getcwd() + "/data/checkpoint",
@@ -50,7 +50,8 @@ def train(model, x_train, y1_train, y2_train, epochs, batch_size):
         save_weights_only=True
     )
 
-    history = model.fit(x=x_train, y=[y1_train, y2_train],
+    history = model.fit(x=[x_train, x_mask_train],
+                        y=[y1_train, y2_train],
                         batch_size=batch_size,
                         epochs=epochs,
                         verbose=1,
@@ -67,7 +68,7 @@ def evaluation(model, x_test, y_test):
 if __name__ == '__main__':
     (x_train, y_train), (x_test, y_test) = prepare_data()
     blank = tf.zeros(shape=(10000, 6, 128))
-
+    x_train_mask = tf.ones(shape=(10000, 6))
     # create model
     model = create_video2gloss_model(input_shape=(6, 4, 7, 28, 1),
                                      video_embed_dim=128,
@@ -90,7 +91,7 @@ if __name__ == '__main__':
 
     #if load weight
     # model.load_weights(os.getcwd() + "/data/checkpoint")
-    train(model, x_train[:500], y_train[:500], blank[:500], 50, 4)
+    train(model, x_train[:500], x_train_mask[:500], y_train[:500], blank[:500], 50, 4)
    
     #model.evaluate(x_test[:100], [y_test[:100], blank[:100]])
 
