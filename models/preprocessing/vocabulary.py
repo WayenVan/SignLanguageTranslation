@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.preprocessing import sequence, text
-from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.text import Tokenizer, tokenizer_from_json
 from typing import List
 
 
@@ -13,10 +13,17 @@ class Vocabulary:
         self.tokenizer.fit_on_texts(texts)
 
     def load(self, file_path):
-        pass
+        json_string = self.tokenizer.to_json()
+        with open(file_path, "w+") as file:
+            file.write(json_string)
 
     def save(self, file_path):
-        pass
+        with open(file_path, "r") as file:
+            json_string = file.readline()
+        self.tokenizer = tokenizer_from_json(json_string)
+
+    def get_dictionary(self):
+        return self.tokenizer.index_word, self.tokenizer.word_index
 
 
 class GlossVocab(Vocabulary):
