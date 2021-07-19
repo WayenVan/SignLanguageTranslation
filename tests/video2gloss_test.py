@@ -90,7 +90,7 @@ if __name__ == '__main__':
                   metrics=[metrics.my_categorical_accuracy])
 
     #if load weight
-    # model.load_weights(os.getcwd() + "/data/checkpoint")
+    model.load_weights(os.getcwd() + "/data/checkpoint")
     train(model, x_train[:500], x_train_mask[:500], y_train[:500], blank[:500], 50, 4)
    
     #model.evaluate(x_test[:100], [y_test[:100], blank[:100]])

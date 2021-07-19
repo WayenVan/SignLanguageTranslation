@@ -101,7 +101,7 @@ def create_video2gloss_model(input_shape,
                               linear_output_dim=linear_output_dim,
                               drop_out=drop_out)
 
-    inputs_mask = keras.Input(shape=input_shape[1])
+    inputs_mask = keras.Input(shape=input_shape[0])
     inputs = keras.Input(shape=input_shape)  # feed fake batch_size for Redistributed computing
     gloss_output, video_feature_output = video2gloss(inputs, inputs_mask=inputs_mask)
 
