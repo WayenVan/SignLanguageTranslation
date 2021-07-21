@@ -42,7 +42,7 @@ def prepare_data():
     return (x_train, y_train), (x_test, y_test)
 
 
-def train(model, x_train, x_mask_train, y1_train, y2_train, epochs, batch_size):
+def train(model, x_train, y_train, epochs, batch_size, x_test=None, y_test=None):
     # prepare checkpoint
     checkpoint_callback = keras.callbacks.ModelCheckpoint(
         filepath=os.getcwd() + "/data/checkpoint",
@@ -50,8 +50,8 @@ def train(model, x_train, x_mask_train, y1_train, y2_train, epochs, batch_size):
         save_weights_only=True
     )
 
-    history = model.fit(x=[x_train, x_mask_train],
-                        y=[y1_train, y2_train],
+    history = model.fit(x=x_train,
+                        y=y_train,
                         batch_size=batch_size,
                         epochs=epochs,
                         verbose=1,
@@ -91,7 +91,6 @@ if __name__ == '__main__':
 
     #if load weight
     model.load_weights(os.getcwd() + "/data/checkpoint")
-    train(model, x_train[:500], x_train_mask[:500], y_train[:500], blank[:500], 50, 4)
-   
-    #model.evaluate(x_test[:100], [y_test[:100], blank[:100]])
+    train(model, [x_train[:1500], x_train_mask[:1500]], [y_train[:1500], blank[:1500]], 50, 4)
+    model.evaluate([x_test[:200], x_train_mask[:200]], [y_test[:200], blank[:200]])
 
