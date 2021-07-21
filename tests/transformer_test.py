@@ -13,7 +13,7 @@ if __name__ == '__main__':
     x2 = keras.Input(shape=(4, 128))
     input_mask = keras.Input(shape=7, dtype=tf.bool)
     encoder_mask = keras.Input(shape=4, dtype=tf.bool)
-    y = layer([x1, x2], inputs_mask=input_mask, encoder_mask=encoder_mask)
+    y = layer([x1, x2, input_mask, encoder_mask])
     print(y)
 
     model = keras.Model(inputs=[x1, x2, input_mask, encoder_mask], outputs=[y])

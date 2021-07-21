@@ -16,7 +16,7 @@ from tensorflow.keras.utils import to_categorical
 from . import losses as self_defined_losses
 
 
-class Video2Gloss(layers.Layer):
+class Video2Gloss(keras.Model):
 
     def __init__(self,
                  video_embed_dim,
@@ -60,20 +60,19 @@ class Video2Gloss(layers.Layer):
     def get_config(self):
         pass
 
-    def call(self, inputs, input_mask=None, training=None, *args, **kwargs):
+    def call(self, inputs, training=None, *args, **kwargs):
         """
-
-        :param inputs:
-        :param input_mask:
-        :param training:
-        :param args:
-        :param kwargs:
+        :param inputs: a list of [inputs_tensor, inputs_mask]
+        :param training: if the model is training or not
         :return: (gloss classification [batch_size, sequence_length, vocabulary_size],
         video_feature [batch_size, sequence_length, ff_dim])
         """
+        input_mask = inputs[1]
+        inputs = inputs[0]
+
         video_feature = self.resnet_3d(inputs)
         video_feature = self.position_embedding(video_feature)
-        video_feature = self.encoder(video_feature, input_mask=input_mask, training=training)
+        video_feature = self.encoder([video_feature, input_mask], training=training)
         gloss_category = self.linear(video_feature, training=training)
 
         return gloss_category, video_feature
@@ -103,11 +102,9 @@ def create_video2gloss_model(input_shape,
 
     inputs_mask = keras.Input(shape=input_shape[0])
     inputs = keras.Input(shape=input_shape)  # feed fake batch_size for Redistributed computing
-    gloss_output, video_feature_output = video2gloss(inputs, inputs_mask=inputs_mask)
+    _, _ = video2gloss([inputs, inputs_mask])
 
-    # create model
-    model = keras.Model(inputs=[inputs, inputs_mask], outputs=[gloss_output, video_feature_output])
-    return model
+    return video2gloss
 
 
 def save_video2gloss_model():

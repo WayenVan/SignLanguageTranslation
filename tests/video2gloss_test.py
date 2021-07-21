@@ -89,6 +89,7 @@ if __name__ == '__main__':
                   loss_weights=[1, 0],
                   metrics=[metrics.my_categorical_accuracy])
 
+
     #if load weight
     model.load_weights(os.getcwd() + "/data/checkpoint")
     train(model, [x_train[:1500], x_train_mask[:1500]], [y_train[:1500], blank[:1500]], 50, 4)
