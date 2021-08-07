@@ -1,14 +1,21 @@
+import os
+import sys
+
+sys.path.append(os.getcwd())
+
 import cv2
 import mediapipe as mp
 from models.preprocessing.mediapipe import pose_estimation
 import numpy as np
 from mediapipe.framework.formats import landmark_pb2
 
+
+
 mp_holistic = mp.solutions.holistic
 
 # For webcam input:
 cap = cv2.VideoCapture()
-cap.open("/Users/wayenvan/Desktop/MscProject/template.mp4")
+cap.open("data/template.mp4")
 
 with mp_holistic.Holistic(
     static_image_mode=True,
