@@ -2,18 +2,11 @@ import sys
 
 sys.path.append("..")
 
-import tensorflow as tf
 import tensorflow.keras as keras
-from tensorflow.keras import layers
-from tensorflow.keras import optimizers
-from tensorflow.keras.layers import Layer, Dense, Dropout
+from tensorflow.keras.layers import Dense, Dropout
 
 from .cnn.resnet3D import ReNet3D18L
 from .transformer.encoder import Encoder, PositionEmbedding
-
-from tensorflow.keras.utils import to_categorical
-
-from . import losses as self_defined_losses
 
 
 class Video2Gloss(keras.Model):
@@ -101,7 +94,9 @@ def create_video2gloss_model(input_shape,
                               drop_out=drop_out)
 
     inputs_mask = keras.Input(shape=input_shape[0])
-    inputs = keras.Input(shape=input_shape)  # feed fake batch_size for Redistributed computing
+    inputs = keras.Input(shape=input_shape)
+
+    # feed fake batch_size for Redistributed computing
     _, _ = video2gloss([inputs, inputs_mask])
 
     return video2gloss

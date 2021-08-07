@@ -6,7 +6,7 @@ from typing import List
 
 class Vocabulary:
 
-    def __init__(self, filters='!"#$%&()*+,-./:;<=>?@[\\]^å`{|}~\t\n'):
+    def __init__(self, filters='!"#$%&()*+,-./:;=?@[\\]^å`{|}~\t\n'):
         self.tokenizer = Tokenizer(filters=filters)
 
     def fit_texts(self, texts):
@@ -28,7 +28,7 @@ class Vocabulary:
 
 class GlossVocab(Vocabulary):
 
-    def __init__(self, filters='!"#$%&()*+,-./:;<=>?@[\\]^å`{|}~\t\n'):
+    def __init__(self, filters='!"#$%&()*+,-./:;=?@[\\]^å`{|}~\t\n'):
         super(GlossVocab, self).__init__(filters=filters)
 
     def glosses2index(self, glosses: List[List[str]]):
@@ -50,7 +50,7 @@ class GlossVocab(Vocabulary):
 
 class WordVocab(Vocabulary):
 
-    def __init__(self, filters='!"#$%&()*+,-./:;<=>?@[\\]^å`{|}~\t\n'):
+    def __init__(self, filters='!"#$%&()*+,-./:;=?@[\\]^å`{|}~\t\n'):
         super(WordVocab, self).__init__(filters=filters)
 
     def sentences2sequences(self, sentences):
