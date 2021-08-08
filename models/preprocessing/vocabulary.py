@@ -12,14 +12,14 @@ class Vocabulary:
     def fit_texts(self, texts):
         self.tokenizer.fit_on_texts(texts)
 
-    def load(self, file_path):
+    def save(self, file_path):
         json_string = self.tokenizer.to_json()
         with open(file_path, "w+") as file:
             file.write(json_string)
 
-    def save(self, file_path):
+    def load(self, file_path):
         with open(file_path, "r") as file:
-            json_string = file.readline()
+            json_string = file.read()
         self.tokenizer = tokenizer_from_json(json_string)
 
     def get_dictionary(self):

@@ -48,7 +48,10 @@ with mp_holistic.Holistic(
     data_length = len(data)
     word_vocab = WordVocab()
     gloss_vocab = GlossVocab()
+    word_vocab.load(os.getcwd()+"/data/vcab/word_vocab.json")
+    gloss_vocab.load(os.getcwd()+"/data/vcab/gloss_vocab.json")
 
+    # calculate max length
     max_gloss_length = 0
     max_sentence_length = 0
 
@@ -57,15 +60,9 @@ with mp_holistic.Holistic(
         if len(glosses) > max_gloss_length:
             max_gloss_length = len(glosses)
 
-        gloss_vocab.fit_texts([glosses])
-        word_vocab.fit_texts([item["sentence"]])
-
         sentence_length = len(word_vocab.sentences2sequences([item["sentence"]])[0])
         if sentence_length > max_sentence_length:
             max_sentence_length = sentence_length
-
-    # fit special tokens
-    word_vocab.fit_texts([["<BOS>", "<EOS>"]])
 
     print("data length: ", len(data))
     print(gloss_vocab.get_dictionary()[0])
@@ -106,8 +103,8 @@ with mp_holistic.Holistic(
                                             decoder_linear_hidden_dim=decoder_linear_hidden_dim,
                                             drop_out=drop_out)
 
-    opt = optimizers.SGD(learning_rate=1e-5)
-    model.load_video2gloss(os.getcwd() + "/data/Template/checkpoint")
+    opt = optimizers.SGD(learning_rate=1e-4)
+    model.load_weights(os.getcwd() + "/data/training_data/checkpoint/checkpoint")
     model.summary()
     model.compile(optimizer=opt,
                   loss=[losses.my_kl_divergence,
@@ -122,7 +119,7 @@ with mp_holistic.Holistic(
         save_weights_only=True
     )
 
-    history = model.fit(x=data_gen, verbose=1, epochs=10, callbacks=[checkpoint_callback])
+    history = model.fit(x=data_gen, verbose=1, epochs=20, callbacks=[checkpoint_callback])
 
     # save history
     with open(os.getcwd() + "/data/training_data/checkpoint/history", "w+") as file:
