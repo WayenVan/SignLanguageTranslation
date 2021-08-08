@@ -41,13 +41,13 @@ class DecoderBlock(layers.Layer):
         inputs_mask = inputs[2]
         encoder_mask = inputs[3]
 
-        attn_mask = utils.create_att_mask(inputs_mask, inputs[0].shape[-2], future_mask=True)
+        attn_mask = utils.create_att_mask(inputs_mask, tf.shape(inputs[0])[-2], future_mask=True)
         ret1 = self.masked_attn(inputs[0], inputs[0], attention_mask=attn_mask)
         ret1 = self.dropout1(ret1, training=training)
         ret1 = self.LN1(ret1 + inputs[0])
 
 
-        cross_attn_mask = utils.create_att_mask(encoder_mask, inputs[0].shape[-2])
+        cross_attn_mask = utils.create_att_mask(encoder_mask, tf.shape(inputs[0])[-2])
         ret2 = self.cross_attn(ret1, inputs[1], attention_mask=cross_attn_mask)
 
         ret2 = self.dropout2(ret2, training=training)

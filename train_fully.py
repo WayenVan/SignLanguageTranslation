@@ -17,6 +17,22 @@ from models.preprocessing.vocabulary import WordVocab, GlossVocab
 import models.losses as losses
 import models.metrics as metrics
 
+video_input_shape=None #get from dataset
+word_input_shape=None #get from dataset for max sentence sequence
+video_embed_dim=256
+word_embed_dim=256
+gloss_categories=None #get from dataset
+word_categories=None #get from dataset
+num_block_encoder=6
+num_block_decoder=6
+head_num=12
+k_dim=64
+v_dim=64
+ff_dim=2048
+encoder_linear_hidden_dim=256
+decoder_linear_hidden_dim=256
+drop_out=0.1
+
 """ data preparation """
 mp_holistic = mp.solutions.holistic
 
@@ -55,6 +71,12 @@ with mp_holistic.Holistic(
     print(gloss_vocab.get_dictionary()[0])
     print(word_vocab.get_dictionary()[0])
 
+    gloss_categories = len(gloss_vocab.get_dictionary()[0])
+    word_categories = len(word_vocab.get_dictionary()[0])
+    word_input_shape = max_sentence_length
+    video_input_shape = (max_gloss_length, 5, 256, 256, 3)
+
+
     random.shuffle(data)
 
     data_gen = DataGenerator(batch_size=2,
@@ -65,35 +87,37 @@ with mp_holistic.Holistic(
                              sentence_length=max_sentence_length,
                              dataset_dir=data_set_path,
                              holistic=holistic,
-                             mediate_output_dim=256,
-                             gloss_only=True)
+                             mediate_output_dim=video_embed_dim,
+                             gloss_only=False)
 
-    model = create_video2gloss_model(input_shape=(max_gloss_length, 5, 256, 256, 3),
-                                     video_embed_dim=256,
-                                     block_number=6,
-                                     k_dim=64,
-                                     v_dim=64,
-                                     encoder_head_number=12,
-                                     ff_dim=2048,
-                                     linear_hidden_dim=256,
-                                     linear_output_dim=gloss_vocab.get_token_num() + 1,
-                                     drop_out=0.1)
+    model = create_sign_translation_model(video_input_shape=video_input_shape,
+                                            word_input_shape=word_input_shape,
+                                            video_embed_dim=video_embed_dim,
+                                            word_embed_dim=word_embed_dim,
+                                            gloss_categories=gloss_categories,
+                                            word_categories=word_categories,
+                                            num_block_encoder=num_block_encoder,
+                                            num_block_decoder=num_block_decoder,
+                                            head_num=head_num,
+                                            k_dim=k_dim,
+                                            v_dim=v_dim,
+                                            ff_dim=ff_dim,
+                                            encoder_linear_hidden_dim=encoder_linear_hidden_dim,
+                                            decoder_linear_hidden_dim=decoder_linear_hidden_dim,
+                                            drop_out=drop_out)
 
     opt = optimizers.SGD(learning_rate=1e-5)
-
-    
-    model.load_weights(os.getcwd() + "/data/Template/checkpoint")
-
+    model.load_video2gloss(os.getcwd() + "/data/Template/checkpoint")
     model.summary()
     model.compile(optimizer=opt,
                   loss=[losses.my_kl_divergence,
                         losses.my_kl_divergence],
-                  loss_weights=[1, 0],
+                  loss_weights=[0.5, 1],
                   metrics=[metrics.my_categorical_accuracy])
 
     # prepare checkpoint
     checkpoint_callback = keras.callbacks.ModelCheckpoint(
-        filepath=os.getcwd() + "/data/Template/checkpoint",
+        filepath=os.getcwd() + "/data/training_data/checkpoint/checkpoint",
         save_best_only=False,
         save_weights_only=True
     )
@@ -101,6 +125,6 @@ with mp_holistic.Holistic(
     history = model.fit(x=data_gen, verbose=1, epochs=10, callbacks=[checkpoint_callback])
 
     # save history
-    with open(os.getcwd() + "/data/Template/history", "w+") as file:
+    with open(os.getcwd() + "/data/training_data/checkpoint/history", "w+") as file:
         hist = pd.DataFrame(history.history)
         hist.to_json(file)
