@@ -9,7 +9,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.layers import Embedding, Dense, Dropout
 from models.video2gloss import create_video2gloss_model, Video2Gloss
 from models.transformer.decoder import Decoder
-from models.transformer.encoder import PositionEmbedding
+from models.transformer.position_embedding import PositionEmbedding
 
 
 class SignTranslation(keras.Model):

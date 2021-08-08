@@ -25,6 +25,9 @@ class Vocabulary:
     def get_dictionary(self):
         return self.tokenizer.index_word, self.tokenizer.word_index
 
+    def get_token_num(self):
+        return len(self.tokenizer.index_word)
+
 
 class GlossVocab(Vocabulary):
 

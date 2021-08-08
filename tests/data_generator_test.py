@@ -4,8 +4,8 @@ from models.preprocessing.data_generator import DataGenerator
 from models.preprocessing.vocabulary import WordVocab, GlossVocab
 
 mp_holistic = mp.solutions.holistic
-
-with open("../Dataset/data.json") as file:
+data_set_path = "/Users/wayenvan/Desktop/MscProject/TempPro/data/DataSet/Data"
+with open("data/Dataset/Data/dataSet.json") as file:
     content = file.read()
     data = json.loads(content)
 
@@ -42,6 +42,7 @@ with mp_holistic.Holistic(
     model_complexity=2) as holistic:
 
     generator = DataGenerator(1, data, gloss_vocab, word_vocab, 8,
-                              8, "/Users/wayenvan/Desktop/MscProject/Dataset", holistic)
-    a = generator[0]
-    print(a)
+                              8, data_set_path, holistic, mediate_output_dim=256, gloss_only=True)
+
+    for i, item in enumerate(generator):
+        print(item[1][0])

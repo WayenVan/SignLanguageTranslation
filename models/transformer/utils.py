@@ -6,7 +6,7 @@ from tensorflow.keras import layers
 
 def create_att_mask(input_mask, q_dim, future_mask=False):
     """
-    :param mask: boolean or int tensor [batch_size, time_step_mask]
+    :param mask: boolean or int tensor [batch_size, time_step_mask] of key
     :param q_dim: query dimension
     :param future_mask: if mask future when do self attention vectors
     :return: [batch_size, time_step_mask, time_step_mask]
@@ -15,13 +15,13 @@ def create_att_mask(input_mask, q_dim, future_mask=False):
 
     if future_mask:
         # create triangle matrix by numpy
-        tri = np.ones(shape=(1, q_dim, input_mask.shape[-1]))  # [batch_size, q_dim, k_dim]
-        tri = np.tril(tri, 0)
-        att_mask = tf.constant(tri, dtype=tf.int8)
+        tri = tf.ones(shape=(1, q_dim, tf.shape(input_mask)[-1]), dtype=tf.int8)  # [batch_size, q_dim, k_dim]
+        tri = tf.linalg.band_part(tri, -1, 0)
+        att_mask = tri
         assert len(att_mask.shape) == 3
         assert att_mask.shape[0] == 1
     else:
-        att_mask = tf.ones(shape=(1, q_dim, input_mask.shape[-1]), dtype=tf.int8)
+        att_mask = tf.ones(shape=(1, q_dim, tf.shape(input_mask)[-1]), dtype=tf.int8)
 
     # align the input mask with attention mask
     att_mask = tf.where(tf.expand_dims(input_mask, -2), att_mask, 0)  # mask become: [batch_size, 1, time_step]

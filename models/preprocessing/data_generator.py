@@ -6,6 +6,7 @@ from .mediapipe import pose_estimation
 import numpy as np
 from .vocabulary import GlossVocab, WordVocab
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.utils import to_categorical
 import mediapipe as mp
 
 
@@ -18,6 +19,7 @@ class DataGenerator(Sequence):
                  sentence_length,
                  dataset_dir,
                  holistic,
+                 mediate_output_dim,
                  frames_per_sign=5,
                  gloss_only=False):
 
@@ -33,6 +35,7 @@ class DataGenerator(Sequence):
         self._sentence_length = sentence_length
         self._dataset_dir = dataset_dir
         self._holistic = holistic
+        self._mediate_output_dim = mediate_output_dim
 
     def __len__(self):
         return self._data_length // self._batch_size
@@ -44,6 +47,7 @@ class DataGenerator(Sequence):
         sentence_batch = []
         glosses_batch = []
 
+        # generate
         for i in range(self._batch_size):
             video_clips, glosses, sentence = self._parse_sentence(self._data[start_index + i], self._holistic)
             assert video_clips.shape[0] <= self._sign_sequence_length
@@ -57,7 +61,7 @@ class DataGenerator(Sequence):
                                           video_clips.shape[1],
                                           video_clips.shape[2],
                                           video_clips.shape[3],
-                                          video_clips.shape[4]), dtype=tf.float64)
+                                          video_clips.shape[4]), dtype=tf.float32)
                 video_clips = tf.concat([video_clips, padding], axis=0)
 
             video_batch.append(video_clips)
@@ -67,7 +71,7 @@ class DataGenerator(Sequence):
 
         # finish generating
         glosses_batch = self._gloss_dict.glosses2index(glosses_batch)
-        glosses_batch = pad_sequences(glosses_batch,  maxlen=self._sign_sequence_length, padding="post")
+        glosses_batch = pad_sequences(glosses_batch, maxlen=self._sign_sequence_length, padding="post")
 
         sentence_input = ["<BOS> " + sentence for sentence in sentence_batch]
         sentence_output = [sentence + " <EOS>" for sentence in sentence_batch]
@@ -78,8 +82,17 @@ class DataGenerator(Sequence):
         sentence_output = self._word_dict.sentences2sequences(sentence_output)
         sentence_output = pad_sequences(sentence_output, maxlen=self._sentence_length + 1, padding="post")
 
-        return [tf.stack(video_batch), tf.stack(sentence_input), tf.stack(mask_batch)], \
-               [tf.stack(glosses_batch), tf.stack(sentence_output)]
+        #return input x and output y
+        if self._gloss_only:
+            return ([tf.stack(video_batch), tf.stack(mask_batch)],
+                   [tf.stack(to_categorical(glosses_batch, num_classes=self._gloss_dict.get_token_num() + 1)),
+                    tf.zeros(shape=(self._batch_size, self._sign_sequence_length, self._mediate_output_dim))])
+        else:
+            return [tf.stack(video_batch),
+                    tf.stack(sentence_input),
+                    tf.stack(mask_batch)], \
+                   [to_categorical(tf.stack(glosses_batch), num_classes=self._gloss_dict.get_token_num() + 1),
+                    to_categorical(tf.stack(sentence_output), num_classes=self._word_dict.get_token_num() + 1)]
 
     def get_glosses(self):
         return [[sign["gloss"] for sign in item["signs"]] for item in self._data]
@@ -93,7 +106,11 @@ class DataGenerator(Sequence):
         """
 
         cap = cv2.VideoCapture()
-        cap.open(self._dataset_dir + "/" + sentence["file_name"])
+        cap.open(self._dataset_dir + "/" + sentence["file_name"] + ".mp4")
+
+        if not cap.isOpened():
+            print("video open failed")
+            exit(0)
 
         sign_clips = []
         glosses = []
@@ -114,11 +131,7 @@ class DataGenerator(Sequence):
                 frame = pose_estimation(frame, holistic)
                 frame = cv2.resize(frame, (256, 256))
 
-                cv2.imshow("1", frame)
-                cv2.waitKey(1000)
-
-                frames.append(tf.cast(frame, dtype=tf.float64))
-
+                frames.append(tf.cast(frame, dtype=tf.float32))
 
             sign_clips.append(tf.stack(frames))
 

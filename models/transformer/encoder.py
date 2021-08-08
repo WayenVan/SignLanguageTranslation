@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 from . import utils
+from .position_embedding import PositionEmbedding
 
 
 class EncodeBlock(layers.Layer):
@@ -29,7 +30,8 @@ class EncodeBlock(layers.Layer):
         inputs = inputs[0]
 
         # create mask and put it into attention
-        attn_mask = utils.create_att_mask(input_mask, inputs.shape[-2])
+        attn_mask = utils.create_att_mask(input_mask, tf.shape(input_mask)[-1])
+
         attn_output = self.att(inputs, inputs, attention_mask=attn_mask, training=training)
 
         attn_output = self.dropout1(attn_output, training=training)
@@ -66,18 +68,3 @@ class Encoder(layers.Layer):
 
         return output
 
-
-class PositionEmbedding(layers.Layer):
-
-    def __init__(self, d_model):
-        super(PositionEmbedding, self).__init__()
-        self._d_model = d_model
-
-    def call(self, inputs, *args, **kwargs):
-        """
-        :param inputs: [batch_size, sequence_length, embed_dim]
-        :return: tensor finishing positioin encode
-        """
-        position_code = utils.positional_encoding(inputs.shape[1], inputs.shape[-1])
-
-        return inputs + position_code

@@ -6,7 +6,8 @@ import tensorflow.keras as keras
 from tensorflow.keras.layers import Dense, Dropout
 
 from .cnn.resnet3D import ReNet3D18L
-from .transformer.encoder import Encoder, PositionEmbedding
+from .transformer.encoder import Encoder
+from .transformer.position_embedding import PositionEmbedding
 
 
 class Video2Gloss(keras.Model):
@@ -60,6 +61,8 @@ class Video2Gloss(keras.Model):
         :return: (gloss classification [batch_size, sequence_length, vocabulary_size],
         video_feature [batch_size, sequence_length, ff_dim])
         """
+        assert len(inputs) == 2
+
         input_mask = inputs[1]
         inputs = inputs[0]
 
