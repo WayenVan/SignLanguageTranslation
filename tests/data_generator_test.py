@@ -2,6 +2,7 @@ import json
 import mediapipe as mp
 from models.preprocessing.data_generator import DataGenerator
 from models.preprocessing.vocabulary import WordVocab, GlossVocab
+import tensorflow as tf
 
 mp_holistic = mp.solutions.holistic
 data_set_path = "/Users/wayenvan/Desktop/MscProject/TempPro/data/DataSet/Data"
@@ -42,7 +43,8 @@ with mp_holistic.Holistic(
     model_complexity=2) as holistic:
 
     generator = DataGenerator(1, data, gloss_vocab, word_vocab, 8,
-                              8, data_set_path, holistic, mediate_output_dim=256, gloss_only=True)
+                              8, data_set_path, holistic, mediate_output_dim=256, gloss_only=False)
 
     for i, item in enumerate(generator):
-        print(item[1][0])
+        print(item[0][1])
+        print(tf.argmax(item[1][1], -1))
