@@ -1,7 +1,6 @@
 import typing
 
 import numpy as np
-import torch
 import pickle
 import cv2
 import yaml

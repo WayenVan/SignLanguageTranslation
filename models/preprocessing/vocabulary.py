@@ -1,3 +1,4 @@
+from numpy.lib.function_base import append
 import tensorflow as tf
 from tensorflow.keras.preprocessing import sequence, text
 from tensorflow.keras.preprocessing.text import Tokenizer, tokenizer_from_json
@@ -48,7 +49,16 @@ class GlossVocab(Vocabulary):
         :param index: index sequence
         :return: List[List[str]] glosses sequence
         """
-        return [[self.tokenizer.index_word[i] for i in item] for item in index]
+        ret = []
+        for item in index:
+            temp = []
+            for i in item:
+                if i == 0:
+                    continue
+                else: 
+                    temp.append(self.tokenizer.index_word[i])
+            ret.append(temp)
+        return ret
 
 
 class WordVocab(Vocabulary):

@@ -1,8 +1,10 @@
 import json
 import os
 import pandas as pd
+import numpy as np
 
 import mediapipe as mp
+from tensorflow.python.keras.engine.training import concat
 
 from models.video2gloss import create_video2gloss_model
 from models.sign_translation import create_sign_translation_model
@@ -21,8 +23,8 @@ video_input_shape=None #get from dataset
 word_input_shape=None #get from dataset for max sentence sequence
 video_embed_dim=256
 word_embed_dim=256
-gloss_categories=None #get from dataset
-word_categories=None #get from dataset
+gloss_categories=39 #get from dataset
+word_categories=46 #get from dataset
 num_block_encoder=6
 num_block_decoder=12
 head_num=12
@@ -32,6 +34,23 @@ ff_dim=2048
 encoder_linear_hidden_dim=256
 decoder_linear_hidden_dim=256
 drop_out=0.1
+
+""""function"""
+def eval_video2gloss(model: keras.Model, data_gen: DataGenerator, vocab: GlossVocab):
+    data = data_gen._data
+    glosses = [[sign["gloss"] for sign in item["signs"]]for item in data]
+    gloss_pre = tf.concat([tf.argmax(model(item[0])[0], axis=-1) for item in data_gen], axis=0).numpy().tolist()
+    gloss_pre = vocab.index2glosses(gloss_pre)
+
+    output = {
+        "hypothesis":glosses,
+        "ground_trugh":gloss_pre
+    }
+    
+    with open("./data/eval/glosses.json", "w+") as file:
+        json.dump(output, file)
+
+
 
 """ data preparation """
 mp_holistic = mp.solutions.holistic
@@ -68,15 +87,13 @@ with mp_holistic.Holistic(
     print(gloss_vocab.get_dictionary()[0])
     print(word_vocab.get_dictionary()[0])
 
-    gloss_categories = len(gloss_vocab.get_dictionary()[0])
-    word_categories = len(word_vocab.get_dictionary()[0])
+    assert gloss_categories == len(gloss_vocab.get_dictionary()[0])
+    assert word_categories == len(word_vocab.get_dictionary()[0])
     word_input_shape = max_sentence_length
     video_input_shape = (max_gloss_length, 5, 256, 256, 3)
 
 
-    random.shuffle(data)
-
-    data_gen = DataGenerator(batch_size=2,
+    data_gen = DataGenerator(batch_size=1,
                              data_list=data,
                              gloss_dict=gloss_vocab,
                              word_dict=word_vocab,
@@ -106,26 +123,13 @@ with mp_holistic.Holistic(
     opt = optimizers.SGD(learning_rate=1e-5)
 
     model.load_weights(os.getcwd() + "/data/training_data/checkpoint/checkpoint")
-    # model.load_video2gloss(os.getcwd() + "/data/Template/checkpoint")
-    model.video2gloss.trainable = False
-
+    model.trainable=False
     model.summary()
-    model.compile(optimizer=opt,
-                  loss=[losses.my_kl_divergence,
-                        losses.my_kl_divergence],
-                  loss_weights=[0, 1],
-                  metrics=[metrics.my_categorical_accuracy])
 
-    # prepare checkpoint
-    checkpoint_callback = keras.callbacks.ModelCheckpoint(
-        filepath=os.getcwd() + "/data/training_data/checkpoint/checkpoint",
-        save_best_only=False,
-        save_weights_only=True
-    )
+    #start evaluate
 
-    history = model.fit(x=data_gen, verbose=1, epochs=10, callbacks=[checkpoint_callback])
-
-    # save history
-    with open(os.getcwd() + "/data/training_data/checkpoint/history", "w+") as file:
-        hist = pd.DataFrame(history.history)
-        hist.to_json(file)
+    bos_index = word_vocab.tokenizer.word_index["<bos>"]
+    eos_inde = word_vocab.tokenizer.word_index["<eos>"]
+    
+    data_gen[0]
+    # eval_video2gloss(model, data_gen, gloss_vocab)
