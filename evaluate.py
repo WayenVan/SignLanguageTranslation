@@ -59,7 +59,8 @@ with mp_holistic.Holistic(
         static_image_mode=True,
         model_complexity=2) as holistic:
 
-    data_set_path = "/home/wayenvan/SignLanguageTranslation/data/DataSet/Data"
+    # data_set_path = "/home/wayenvan/SignLanguageTranslation/data/DataSet/Data"
+    data_set_path = "/Users/wayenvan/Desktop/MscProject/TempPro/data/DataSet/Data"
     with open(data_set_path + "/dataSet.json") as file:
         content = file.read()
         data = json.loads(content)
@@ -130,6 +131,5 @@ with mp_holistic.Holistic(
 
     bos_index = word_vocab.tokenizer.word_index["<bos>"]
     eos_inde = word_vocab.tokenizer.word_index["<eos>"]
-    
-    data_gen[0]
-    # eval_video2gloss(model, data_gen, gloss_vocab)
+
+    eval_video2gloss(model, data_gen, gloss_vocab)

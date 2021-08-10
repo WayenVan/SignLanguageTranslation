@@ -127,14 +127,9 @@ class DataGenerator(Sequence):
                 cap.set(cv2.CAP_PROP_POS_FRAMES, point)
                 result, frame = cap.read()
                 assert result == True
-                
-                temp = cv2.resize(frame, (256, 256))
-                cv2.imwrite("./data/images/c"+str(point), temp)
 
                 frame = pose_estimation(frame, holistic)
                 frame = cv2.resize(frame, (256, 256))
-
-                cv2.imwrite("./data/images/c"+str(point)+"handled.jpg", frame)
 
                 frames.append(tf.cast(frame, dtype=tf.float32))
 
