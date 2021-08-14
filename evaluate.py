@@ -5,6 +5,7 @@ import numpy as np
 
 import mediapipe as mp
 from tensorflow.python.keras.engine.training import concat
+from tensorflow.python.ops.gen_math_ops import mod
 
 from models.video2gloss import create_video2gloss_model
 from models.sign_translation import create_sign_translation_model
@@ -51,6 +52,63 @@ def eval_video2gloss(model: keras.Model, data_gen: DataGenerator, vocab: GlossVo
         json.dump(output, file)
 
 
+def confusiong_matrix(model: keras.Model, data_gen: DataGenerator):
+    
+    ground_truth = []
+    prediction = []
+
+    for item in data_gen:
+        ground_truth.append(tf.squeeze(tf.argmax(item[1][0], axis=-1)).numpy().tolist())
+        prediction.append(tf.squeeze(tf.argmax(model(item[0])[0], axis=-1)).numpy().tolist())
+
+    ret = {
+        "prediction":prediction,
+        "ground_truth":ground_truth
+    }
+    
+    with open("./data/eval/confusion_matrix.json", "w+") as file:
+        json.dump(ret, file)
+
+
+def eval_translation(model: keras.Model, data_gen: DataGenerator, bos_index, eos_index):
+
+    data = data_gen._data
+    ground_truth = [ item["sentence"] for item in data]
+    predict = []
+    
+    for item in data_gen:
+
+        input = tf.constant([[bos_index]], dtype=tf.int64)
+        output = None
+
+        for i in range(15):
+            output = model([item[0][0], input, item[0][2]])
+            words_pre = tf.argmax(output[1], axis=-1)
+
+            if words_pre[0][i] == eos_index:
+                output = tf.squeeze(words_pre, axis=0)
+                break
+            
+            if i == 14:
+                print("warning, outof range!")
+                output = tf.squeeze(words_pre, axis=0)
+                break
+
+            input = tf.concat([tf.constant([[bos_index]], dtype=tf.int64), words_pre], axis=1)
+
+        print(output)
+        predict.append(output.numpy().tolist())
+        
+    ret = {
+        "prediction":predict,
+        "ground_truth":ground_truth
+    }
+    
+    with open("./data/eval/translation.json", "w+") as file:
+        json.dump(ret, file)
+
+
+
 
 """ data preparation """
 mp_holistic = mp.solutions.holistic
@@ -59,8 +117,8 @@ with mp_holistic.Holistic(
         static_image_mode=True,
         model_complexity=2) as holistic:
 
-    # data_set_path = "/home/wayenvan/SignLanguageTranslation/data/DataSet/Data"
-    data_set_path = "/Users/wayenvan/Desktop/MscProject/TempPro/data/DataSet/Data"
+    data_set_path = "/home/wayenvan/SignLanguageTranslation/data/DataSet/Data"
+    #data_set_path = "/Users/wayenvan/Desktop/MscProject/TempPro/data/DataSet/Data"
     with open(data_set_path + "/dataSet.json") as file:
         content = file.read()
         data = json.loads(content)
@@ -132,4 +190,6 @@ with mp_holistic.Holistic(
     bos_index = word_vocab.tokenizer.word_index["<bos>"]
     eos_inde = word_vocab.tokenizer.word_index["<eos>"]
 
-    eval_video2gloss(model, data_gen, gloss_vocab)
+    # eval_video2gloss(model, data_gen, gloss_vocab)
+    eval_translation(model, data_gen, bos_index, eos_inde)
+    # confusiong_matrix(model, data_gen)
