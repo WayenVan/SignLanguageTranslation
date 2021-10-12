@@ -6,8 +6,13 @@ from mediapipe.framework.formats import landmark_pb2
 mp_drawing = mp.solutions.drawing_utils
 mp_holistic = mp.solutions.holistic
 
-
 def pose_estimation(image, holistic):
+    """
+    :param image: target image for detection
+    :param holistic: holistic model from mediapipe
+    :return: image drawing only the detected body and hand connections
+    """
+
     # Flip the image horizontally for a later selfie-view display, and convert
     # the BGR image to RGB.
     image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
