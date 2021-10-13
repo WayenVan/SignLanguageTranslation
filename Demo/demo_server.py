@@ -133,7 +133,7 @@ class MyHandler(BaseHTTPRequestHandler):
         content_length = int(self.headers['Content-Length'])
         data = self.rfile.read(content_length)
         data = pickle.loads(data)
-        ret = model_server.predict(data)
+        ret = model.iterative_prediction(data, bos_index=bos_index, eos_index=eos_index)
 
         #response
         self.send_response(200)

@@ -111,5 +111,5 @@ with mp_holistic.Holistic(
         cap.release()
 
         s = pickle.dumps(data[0])
-        #response = requests.post("http://172.30.148.9:2333", data=s)
+        response = requests.post("http://192.168.8.185:2333", data=s)
         q.put("my favourite number is 0")

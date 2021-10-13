@@ -103,6 +103,42 @@ class SignTranslation(keras.Model):
 
         return gloss_output, word_output
 
+    def iterative_prediction(self, inputs, bos_index, eos_index):
+        """
+        :param inputs: [input_data:[1, sequence_length, frame_size, frame_height,
+                        frame_width, channel], mask:[1, sequence_length]]
+        :return: a list of [sequence_length] with the predicted word index
+        """
+        video_inputs = inputs[0]
+        video_mask = inputs[1]
+        _, encoder_output = self.video2gloss([video_inputs, video_mask])
+
+        ret = []
+        word_inputs = tf.constant([[bos_index]], dtype=tf.int64)
+
+        for i in range(self._max_iterate_num):
+
+            word_mask = self.word_embed.compute_mask(word_inputs)
+            word_embed = self.word_embed(word_inputs)
+            word_embed = self.position_embed(word_embed)
+
+            decoder_output = self.decoder([word_embed, encoder_output, word_mask, video_mask])
+            word_output = self.linear(decoder_output)
+            words_pre = tf.argmax(word_output, axis=-1)
+
+            if words_pre[0][i] == self._eos_index:
+                ret = tf.squeeze(words_pre, axis=0).numpy().tolist()
+                break
+
+            if i == self._max_iterate_num - 1:
+                print("warning, out of the range!")
+                ret = tf.squeeze(words_pre, axis=0).numpy().tolist()
+                break
+
+            word_inputs = tf.concat([tf.constant([[self._bos_index]], dtype=tf.int64), words_pre], axis=1)
+
+        return ret
+
 
 def create_sign_translation_model(video_input_shape,
                                   word_input_shape,
