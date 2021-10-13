@@ -1,21 +1,15 @@
 import json
 import os
+import pickle
+import sys
+import gtts
+from playsound import playsound
 
-import cv2
-import pandas as pd
-import numpy as np
+sys.path.append(os.getcwd())
 
-import mediapipe as mp
-from tensorflow.python.keras.engine.training import concat
-
-from models.video2gloss import create_video2gloss_model
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from models.sign_translation import create_sign_translation_model
-
 import tensorflow as tf
-import tensorflow.keras as keras
-from tensorflow.keras import optimizers
-import random
-from models.preprocessing.data_generator import DataGenerator
 from models.preprocessing.vocabulary import WordVocab, GlossVocab
 
 
@@ -36,8 +30,8 @@ decoder_linear_hidden_dim=256
 drop_out=0.1
 
 """prepare data"""
-data_set_path = "/home/wayenvan/SignLanguageTranslation/data/DataSet/Data"
-# data_set_path = "/Users/wayenvan/Desktop/MscProject/TempPro/data/DataSet/Data"
+# data_set_path = "/home/wayenvan/SignLanguageTranslation/data/DataSet/Data"
+data_set_path = "/Users/wayenvan/Desktop/MscProject/TempPro/data/DataSet/Data"
 with open(data_set_path + "/dataSet.json") as file:
     content = file.read()
     data = json.loads(content)
@@ -70,22 +64,26 @@ assert word_categories == len(word_vocab.get_dictionary()[0])
 word_input_shape = max_sentence_length
 video_input_shape = (max_gloss_length, 5, 256, 256, 3)
 
-class ModelServer(keras.Model):
+class ModelServer:
     """
     a wrapper for recursive generation of input
     """
-    def __init__(self, model, bos_index, eos_index, max_iterate_num=15):
+    def __init__(self, model, bos_index, eos_index, max_iterate_num=4):
         super(ModelServer, self).__init__()
         self._model = model
         self._bos_index = bos_index
         self._eos_index = eos_index
         self._max_iterate_num = max_iterate_num
 
-    def call(self, inputs, training=None, mask=None):
+    def predict(self, inputs):
         """
         :param inputs: [[1, sequence_length, frame_size, frame_height, frame_width, channel], [1, sequence_length]]
         :return ret: [sequence_length] a sequence of the index of predicted words
         """
+        ret = []
+        text_input = tf.constant([[bos_index]], dtype=tf.int64)
+
+        print("start prediction")
         for i in range(self._max_iterate_num):
             output = model([inputs[0], text_input, inputs[1]])
             words_pre = tf.argmax(output[1], axis=-1)
@@ -101,10 +99,9 @@ class ModelServer(keras.Model):
 
             text_input = tf.concat([tf.constant([[self._bos_index]], dtype=tf.int64), words_pre], axis=1)
 
-        return ret
+        print(ret)
 
-
-
+        return ret.numpy().tolist()
 
 model = create_sign_translation_model(video_input_shape=video_input_shape,
                                       word_input_shape=word_input_shape,
@@ -121,8 +118,8 @@ model = create_sign_translation_model(video_input_shape=video_input_shape,
                                       encoder_linear_hidden_dim=encoder_linear_hidden_dim,
                                       decoder_linear_hidden_dim=decoder_linear_hidden_dim,
                                       drop_out=drop_out)
-
-model.load_weights(os.getcwd() + "/data/training_data/checkpoint/checkpoint")
+#load model params
+#model.load_weights(os.getcwd() + "/data/training_data/checkpoint/checkpoint")
 model.trainable=False
 model.summary()
 
@@ -131,4 +128,23 @@ eos_index = word_vocab.tokenizer.word_index["<eos>"]
 
 model_server = ModelServer(model, bos_index=bos_index, eos_index=eos_index)
 
-tf.placeholder
+"""Http Server"""
+class MyHandler(BaseHTTPRequestHandler):
+
+    def do_POST(self):
+        content_length = int(self.headers['Content-Length'])
+        data = self.rfile.read(content_length)
+        data = pickle.loads(data)
+        ret = model_server.predict(data)
+
+        #response
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(pickle.dumps(ret))
+
+server_address = ("0.0.0.0", 2333)
+httpd = HTTPServer(server_address, MyHandler)
+httpd.serve_forever()
+
+
+

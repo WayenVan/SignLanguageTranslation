@@ -1,3 +1,4 @@
+template.*
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json

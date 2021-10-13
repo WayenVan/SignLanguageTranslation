@@ -1,10 +1,34 @@
 import http
+import tensorflow as tf
+import tensorflow.keras as keras
+import json
+import pickle
+
+
+
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-def run(server_class, handler_class):
-    server_address = ("192.168.8.183", 8000)
-    httpd = server_class(server_address, handler_class)
-    httpd.serve_forever()
+class MyHandler(BaseHTTPRequestHandler):
+    def __init__(self, model):
+        super(MyHandler, self).__init__()
+        self._model = model;
 
-run(HTTPServer, BaseHTTPRequestHandler)
+
+    def do_POST(self):
+        content_length = int(self.headers['Content-Length'])
+        data = self.rfile.read(content_length)
+        data = pickle.loads(data)
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"hello")
+
+
+
+
+
+server_address = ("0.0.0.0", 8000)
+httpd = HTTPServer(server_address, MyHandler)
+httpd.serve_forever()
+
+
 
