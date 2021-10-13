@@ -103,7 +103,7 @@ class SignTranslation(keras.Model):
 
         return gloss_output, word_output
 
-    def iterative_prediction(self, inputs, bos_index, eos_index):
+    def iterative_prediction(self, inputs, bos_index, eos_index, max_iterate_num=14):
         """
         :param inputs: [input_data:[1, sequence_length, frame_size, frame_height,
                         frame_width, channel], mask:[1, sequence_length]]
@@ -116,7 +116,7 @@ class SignTranslation(keras.Model):
         ret = []
         word_inputs = tf.constant([[bos_index]], dtype=tf.int64)
 
-        for i in range(self._max_iterate_num):
+        for i in range(max_iterate_num):
 
             word_mask = self.word_embed.compute_mask(word_inputs)
             word_embed = self.word_embed(word_inputs)
@@ -126,17 +126,18 @@ class SignTranslation(keras.Model):
             word_output = self.linear(decoder_output)
             words_pre = tf.argmax(word_output, axis=-1)
 
-            if words_pre[0][i] == self._eos_index:
+            if words_pre[0][i] == eos_index:
                 ret = tf.squeeze(words_pre, axis=0).numpy().tolist()
                 break
 
-            if i == self._max_iterate_num - 1:
+            if i == max_iterate_num - 1:
                 print("warning, out of the range!")
                 ret = tf.squeeze(words_pre, axis=0).numpy().tolist()
                 break
 
-            word_inputs = tf.concat([tf.constant([[self._bos_index]], dtype=tf.int64), words_pre], axis=1)
-
+            word_inputs = tf.concat([tf.constant([[bos_index]], dtype=tf.int64), words_pre], axis=1)
+            
+        print(ret)
         return ret
 
 
