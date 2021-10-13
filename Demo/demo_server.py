@@ -2,8 +2,6 @@ import json
 import os
 import pickle
 import sys
-import gtts
-from playsound import playsound
 
 sys.path.append(os.getcwd())
 
@@ -30,8 +28,8 @@ decoder_linear_hidden_dim=256
 drop_out=0.1
 
 """prepare data"""
-# data_set_path = "/home/wayenvan/SignLanguageTranslation/data/DataSet/Data"
-data_set_path = "/Users/wayenvan/Desktop/MscProject/TempPro/data/DataSet/Data"
+data_set_path = "/home/wayenvan/SignLanguageTranslation/data/DataSet/Data"
+# data_set_path = "/Users/wayenvan/Desktop/MscProject/TempPro/data/DataSet/Data"
 with open(data_set_path + "/dataSet.json") as file:
     content = file.read()
     data = json.loads(content)
@@ -68,7 +66,7 @@ class ModelServer:
     """
     a wrapper for recursive generation of input
     """
-    def __init__(self, model, bos_index, eos_index, max_iterate_num=4):
+    def __init__(self, model, bos_index, eos_index, max_iterate_num=15):
         super(ModelServer, self).__init__()
         self._model = model
         self._bos_index = bos_index
@@ -119,7 +117,7 @@ model = create_sign_translation_model(video_input_shape=video_input_shape,
                                       decoder_linear_hidden_dim=decoder_linear_hidden_dim,
                                       drop_out=drop_out)
 #load model params
-#model.load_weights(os.getcwd() + "/data/training_data/checkpoint/checkpoint")
+model.load_weights(os.getcwd() + "/data/training_data/checkpoint/checkpoint")
 model.trainable=False
 model.summary()
 
