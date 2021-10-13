@@ -1,5 +1,6 @@
 import json
 import os
+import random
 import sys
 import threading
 sys.path.append(os.getcwd())
@@ -81,6 +82,7 @@ with mp_holistic.Holistic(
     assert gloss_categories == len(gloss_vocab.get_dictionary()[0])
     assert word_categories == len(word_vocab.get_dictionary()[0])
 
+    random.shuffle(data)
     data_gen = DataGenerator(batch_size=1,
                              data_list=data,
                              gloss_dict=gloss_vocab,
@@ -112,4 +114,5 @@ with mp_holistic.Holistic(
 
         s = pickle.dumps(data[0])
         response = requests.post("http://192.168.8.185:2333", data=s)
-        q.put("my favourite number is 0")
+        s = pickle.loads(response.content)
+        q.put(word_vocab.sequences2sentences([s[:-1]])[0])
