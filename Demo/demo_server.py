@@ -10,7 +10,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from models.sign_translation import create_sign_translation_model
 from models.preprocessing.vocabulary import WordVocab, GlossVocab
 
-response_server_adress = "http://128.0.0.1:2333"
+response_server_adress = "http://192.168.8.183:2333"
 
 video_input_shape=None #get from dataset
 word_input_shape=None #get from dataset for max sentence sequence
@@ -99,9 +99,9 @@ class MyHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
         #self.wfile.write(pickle.dumps(ret))
+        requests.post(response_server_adress, data=pickle.dumps(ret))
 
         #send result to response_server
-        requests.post(response_server_adress, data=pickle.dumps(ret))
 
 server_address = ("0.0.0.0", 2333)
 httpd = HTTPServer(server_address, MyHandler)
