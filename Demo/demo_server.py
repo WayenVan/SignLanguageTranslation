@@ -8,10 +8,9 @@ sys.path.append(os.getcwd())
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from models.sign_translation import create_sign_translation_model
-import tensorflow as tf
 from models.preprocessing.vocabulary import WordVocab, GlossVocab
 
-response_server_adress = ""
+response_server_adress = "http://128.0.0.1:2333"
 
 video_input_shape=None #get from dataset
 word_input_shape=None #get from dataset for max sentence sequence

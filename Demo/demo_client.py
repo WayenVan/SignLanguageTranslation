@@ -49,7 +49,7 @@ def speaking(que: Queue):
         playsound("Demo/template.mp3")
 
 
-threading.Thread(target=speaking, args=(q,)).start()
+#threading.Thread(target=speaking, args=(q,)).start()
 
 """main thread"""
 mp_holistic = mp.solutions.holistic

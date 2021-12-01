@@ -19,7 +19,7 @@ class MyHandler(BaseHTTPRequestHandler):
         data = self.rfile.read(content_length)
         s = pickle.loads(data)
         q.put(word_vocab.sequences2sentences([s[:-1]])[0])
-
+        print("put done")
         #response
         self.send_response(200)
         self.end_headers()
