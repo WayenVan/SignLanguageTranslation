@@ -64,45 +64,6 @@ assert word_categories == len(word_vocab.get_dictionary()[0])
 word_input_shape = max_sentence_length
 video_input_shape = (max_gloss_length, 5, 256, 256, 3)
 
-class ModelServer:
-    """
-    a wrapper for recursive generation of input
-    """
-    def __init__(self, model, bos_index, eos_index, max_iterate_num=15):
-        super(ModelServer, self).__init__()
-        self._model = model
-        self._bos_index = bos_index
-        self._eos_index = eos_index
-        self._max_iterate_num = max_iterate_num
-
-    def predict(self, inputs):
-        """
-        :param inputs: [[1, sequence_length, frame_size, frame_height, frame_width, channel], [1, sequence_length]]
-        :return ret: [sequence_length] a sequence of the index of predicted words
-        """
-        ret = []
-        text_input = tf.constant([[bos_index]], dtype=tf.int64)
-
-        print("start prediction")
-        for i in range(self._max_iterate_num):
-            output = model([inputs[0], text_input, inputs[1]])
-            words_pre = tf.argmax(output[1], axis=-1)
-
-            if words_pre[0][i] == self._eos_index:
-                ret = tf.squeeze(words_pre, axis=0)
-                break
-
-            if i == self._max_iterate_num - 1:
-                print("warning, out of the range!")
-                ret = tf.squeeze(words_pre, axis=0)
-                break
-
-            text_input = tf.concat([tf.constant([[self._bos_index]], dtype=tf.int64), words_pre], axis=1)
-
-        print(ret)
-
-        return ret.numpy().tolist()
-
 model = create_sign_translation_model(video_input_shape=video_input_shape,
                                       word_input_shape=word_input_shape,
                                       video_embed_dim=video_embed_dim,
@@ -125,8 +86,6 @@ model.summary()
 
 bos_index = word_vocab.tokenizer.word_index["<bos>"]
 eos_index = word_vocab.tokenizer.word_index["<eos>"]
-
-model_server = ModelServer(model, bos_index=bos_index, eos_index=eos_index)
 
 """Http Server"""
 class MyHandler(BaseHTTPRequestHandler):
