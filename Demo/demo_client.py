@@ -20,6 +20,9 @@ import typing
 import gtts
 from playsound import playsound
 
+model_server_address = "http://192.168.8.185:2333"
+
+
 video_input_shape = None  # get from dataset
 word_input_shape = None  # get from dataset for max sentence sequence
 video_embed_dim = 256
@@ -113,6 +116,7 @@ with mp_holistic.Holistic(
         cap.release()
 
         s = pickle.dumps(data[0])
-        response = requests.post("http://192.168.8.185:2333", data=s)
-        s = pickle.loads(response.content)
-        q.put(word_vocab.sequences2sentences([s[:-1]])[0])
+        response = requests.post(model_server_address, data=s)
+
+        # s = pickle.loads(response.content)
+        # q.put(word_vocab.sequences2sentences([s[:-1]])[0])

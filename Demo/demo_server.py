@@ -2,6 +2,7 @@ import json
 import os
 import pickle
 import sys
+import requests
 
 sys.path.append(os.getcwd())
 
@@ -10,6 +11,7 @@ from models.sign_translation import create_sign_translation_model
 import tensorflow as tf
 from models.preprocessing.vocabulary import WordVocab, GlossVocab
 
+response_server_adress = ""
 
 video_input_shape=None #get from dataset
 word_input_shape=None #get from dataset for max sentence sequence
@@ -138,7 +140,10 @@ class MyHandler(BaseHTTPRequestHandler):
         #response
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(pickle.dumps(ret))
+        #self.wfile.write(pickle.dumps(ret))
+
+        #send result to response_server
+        requests.post(response_server_adress, data=pickle.dumps(ret))
 
 server_address = ("0.0.0.0", 2333)
 httpd = HTTPServer(server_address, MyHandler)
