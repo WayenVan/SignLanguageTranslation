@@ -10,7 +10,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from models.sign_translation import create_sign_translation_model
 from models.preprocessing.vocabulary import WordVocab, GlossVocab
 
-response_server_adress = "http://192.168.8.183:2333"
+response_server_adress = "http://192.168.8.121:2333"
 
 video_input_shape=None #get from dataset
 word_input_shape=None #get from dataset for max sentence sequence
